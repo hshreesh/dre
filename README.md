@@ -40,18 +40,23 @@ This repo also includes a GRASS + Bash + R workflow to download PRISM climate ra
 
 Run inside an active GRASS GIS session:
 
-```bash
 # 1. Download PRISM rasters
+```bash
 m.prism.download dataset=0,2,4 start_date=1990-01-01 end_date=2023-12-31
+```
 
 # 2. Import and process
+```bash
 bash import_prism_rasters.sh
 sh create_prism_grid_4km.sh
 sh union_prism_area_grid.sh
 sh calc_weighted_avg_prism.sh
+```
 
 # 3. R analysis
+```bash
 Rscript prec_analysis.R
+```
 
 ## SIMWE discharge sum along a user-defined line (GRASS + Bash)
 
@@ -97,3 +102,4 @@ chmod +x simw_line_sum_pure.sh
   x1=-1030077.451885954 y1=1125099.4959982967 \
   x2=-1030095.7392827778 y2=1125112.068581797 \
   buffer=3
+```
