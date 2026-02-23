@@ -69,6 +69,12 @@ need x2
 need y2
 need buffer
 
+# Make sure we are inside GRASS
+if ! command -v g.region >/dev/null 2>&1; then
+  echo "ERROR: GRASS commands not found. Run inside GRASS or via 'grass ... --exec'." >&2
+  exit 3
+fi
+
 depth_base="depth_${outprefix}"
 q_base="q_${outprefix}"
 last_t="${niterations}"
@@ -102,17 +108,9 @@ if ! g.findfile element=cell file="${q_map}" >/dev/null 2>&1; then
   exit 4
 fi
 
-# Create 2-point line vector
-tmpfile="$(mktemp)"
-trap 'rm -f "$tmpfile"' EXIT
-
-cat > "$tmpfile" <<EOF
-L 2
-${x1} ${y1}
-${x2} ${y2}
-EOF
-
-v.in.ascii -n input="$tmpfile" output="${line_vec}" format=standard --o
+# Create 2-point line vector (NO temp file; stdin pipe)
+printf 'L 2\n%s %s\n%s %s\n' "$x1" "$y1" "$x2" "$y2" | \
+  v.in.ascii -n input=- output="${line_vec}" format=standard --o
 
 # Set region to discharge raster grid
 g.region raster="${q_map}"
