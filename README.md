@@ -52,3 +52,48 @@ sh calc_weighted_avg_prism.sh
 
 # 3. R analysis
 Rscript prec_analysis.R
+
+## SIMWE discharge sum along a user-defined line (GRASS + Bash)
+
+This repo includes a Bash script that automates a SIMWE (`r.sim.water`) run and then computes the **sum of discharge raster values** within a buffered corridor around a **line defined by two coordinates**.
+
+### What it does
+
+Given gridded inputs (DEM, dx, dy, Manning’s n) and a rainfall intensity:
+
+1. Runs `r.sim.water` to generate depth and discharge rasters.
+2. Builds a 2-point line vector from `(x1, y1)` → `(x2, y2)`.
+3. Buffers the line **as a vector polygon** (robust for short lines).
+4. Rasterizes the buffered polygon to create a mask.
+5. Extracts discharge values where the mask is present.
+6. Calculates the **sum** of extracted discharge values for the **last output timestep** (equal to `niterations`).
+
+> Note: The “last timestep” discharge map `q_<outprefix>.<niterations>` exists only if `niterations` is a multiple of `output_step`.
+
+### Script
+
+- `simw_line_sum_pure.sh` — pure Bash (no `g.parser`) SIMWE + line-buffer + discharge-sum workflow
+
+### Requirements
+
+- GRASS GIS (with `r.sim.water`, `v.in.ascii`, `v.buffer`, `v.to.rast`, `r.mapcalc`, `r.univar`)
+- A GRASS Location/Mapset containing the rasters:
+  - `elevation` (DEM)
+  - `dx`, `dy`
+  - `man` (Manning’s n raster or constant)
+- Coordinates `x1,y1,x2,y2` in the **same CRS** as your GRASS Location.
+
+### Usage
+
+Run inside an active GRASS session:
+
+```bash
+chmod +x simw_line_sum_pure.sh
+
+./simw_line_sum_pure.sh \
+  elevation=dem_3m_mod dx=dx_mod dy=dy_mod man=n_low \
+  rain=23 niterations=60 output_step=60 nprocs=4 \
+  outprefix=2y1h_mod \
+  x1=-1030077.451885954 y1=1125099.4959982967 \
+  x2=-1030095.7392827778 y2=1125112.068581797 \
+  buffer=3
